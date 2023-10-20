@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  pptp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pptp-server
+    hostname: pptp-server
+    volumes:
+      - ./dockerfiles/chap-secrets:/etc/ppp/chap-secrets
+    ports:
+      - 1723:1723
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
