@@ -3,56 +3,52 @@
 set -e
 #iptables-restore < /etc/iptables/rules.v4
 # enable IP forwarding
-sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv4.ip_forward=0
 
 # configure firewall
+iptables -t filter -F
 
-iptables -t nat -A POSTROUTING -s 10.1.0.0/24 ! -d 10.1.0.0/24 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.1.1.0/24 ! -d 10.1.1.0/24 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.1.2.0/24 ! -d 10.1.2.0/24 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.1.3.0/24 ! -d 10.1.3.0/24 -j MASQUERADE
+# Set the default policies
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
 
-iptables -A FORWARD -s 10.1.0.0/24 -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --set-mss 1356
-iptables -A FORWARD -s 10.1.1.0/24 -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --set-mss 1356
-iptables -A FORWARD -s 10.1.2.0/24 -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --set-mss 1356
-iptables -A FORWARD -s 10.1.3.0/24 -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j TCPMSS --set-mss 1356
-
-# iptables -t filter -A INPUT -i ppp+ -j ACCEPT
-# iptables -t filter -A FORWARD -i ppp+ -j ACCEPT
-# iptables -t filter -A FORWARD -o ppp+ -j ACCEPT
-# iptables -t filter -A OUTPUT -o ppp+ -j ACCEPT
-
-# iptables -t nat -A POSTROUTING -o ppp+ -j MASQUERADE
-# iptables -t nat -A POSTROUTING -s 0.0.0.0/0 -o eth0 -j MASQUERADE
-
-# iptables -A FORWARD -i ppp+ -o eth0 -j ACCEPT
-# iptables -A FORWARD -i eth0 -o ppp+ -j ACCEPT
-# iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT
-# iptables -A INPUT -i eth0 -p gre -j ACCEPT
-
+# Allow incoming traffic on interface ppp+
 iptables -A INPUT -i ppp+ -j ACCEPT
-iptables -A OUTPUT -o ppp+ -j ACCEPT
+
+# Allow forwarding traffic on interface ppp+
 iptables -A FORWARD -i ppp+ -j ACCEPT
+
+# Allow outgoing traffic on interface ppp+
 iptables -A FORWARD -o ppp+ -j ACCEPT
+iptables -A OUTPUT -o ppp+ -j ACCEPT
 
-iptables -A INPUT -p tcp --dport 1723 -j ACCEPT
-iptables -A INPUT -p gre -j ACCEPT
+iptables -A INPUT -i eth0 -p tcp --dport 1723 -j ACCEPT
+iptables -A INPUT -i eth0 -p gre -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-OCT_2="${MAIN_OCTET:-10.1}"
+# OCT_2="${MAIN_OCTET:-10.1}"
 
-for i in {2..254}; do
+# for i in {2..254}; do
 
-    redir -s :$((i + 10000)) $OCT_2.0.$i:8728
-    redir -s :$((i + 20000)) $OCT_2.0.$i:8291
+#     redir -s :$((i + 10000)) $OCT_2.0.$i:8728
+#     redir -s :$((i + 20000)) $OCT_2.0.$i:8291
 
-    redir -s :$((i + 10000)) $OCT_2.1.$i:8728
-    redir -s :$((i + 20000)) $OCT_2.1.$i:8291
+#     redir -s :$((i + 10000)) $OCT_2.1.$i:8728
+#     redir -s :$((i + 20000)) $OCT_2.1.$i:8291
 
-    redir -s :$((i + 10000)) $OCT_2.2.$i:8728
-    redir -s :$((i + 20000)) $OCT_2.2.$i:8291
+#     redir -s :$((i + 10000)) $OCT_2.2.$i:8728
+#     redir -s :$((i + 20000)) $OCT_2.2.$i:8291
 
-    redir -s :$((i + 10000)) $OCT_2.3.$i:8728
-    redir -s :$((i + 20000)) $OCT_2.3.$i:8291
-done
+#     redir -s :$((i + 10000)) $OCT_2.3.$i:8728
+#     redir -s :$((i + 20000)) $OCT_2.3.$i:8291
+# done
 
+echo "export WASP_ENDPOINT=${WASP_ENDPOINT}" >> "/opt/envs.sh"
+echo "export OCT_2=${OCT_2}" >> "/opt/envs.sh"
+
+pptpd
+echo "Start: API = ${WASP_ENDPOINT}" >> "/var/log/syslog"
+#curl -sL "https://wasp.rmendiola.site/api/pptp/up?interface_name=ppp0&device_name=/dev/pts/0&device_speed=115200&local_ip=10.1.0.1&remote_ip=10.1.0.2&param=119.94.108.25"
+tail -f "/var/log/syslog"
 exec "$@"

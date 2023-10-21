@@ -9,6 +9,8 @@ services:
     hostname: pptp-server
     volumes:
       - ./dockerfiles/chap-secrets:/etc/ppp/chap-secrets
+    environment:
+      - WASP_ENDPOINT=https://wasp.rmendiola.site
     ports:
       - 1723:1723
     restart: unless-stopped
