@@ -46,11 +46,10 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 echo "export WASP_ENDPOINT=${WASP_ENDPOINT}" >> "/opt/envs.sh"
 echo "export OCT_2=${OCT_2}" >> "/opt/envs.sh"
-#shell2http --port 8085 -form /init-redir 'curl -sL "$WASP_ENDPOINT/api/pptp/redir?real=$v_realm" | bash' &
-#shell2http --port 8086 -form /make-redir 'redir -s ":$v_src_ip" $v_dest_ip:$v_dest_port' &
-
+shell2http --port 8085 -form /init-redir 'curl -sL "$WASP_ENDPOINT/api/pptp/redir?real=$v_realm" | bash' &
+shell2http --port 8086 -form /make-redir 'redir -s ":$v_src_port" $v_dest_ip:$v_dest_port && echo redir -s ":$v_src_port" $v_dest_ip:$v_dest_port >> "/var/log/syslog"' &
+shell2http --port 8087 -form /delete-redir 'kill $(lsof -t -i :$v_src_port) && lsof -t -i :$v_src_port >> "/var/log/syslog"' &
 pptpd
 echo "Start: API = ${WASP_ENDPOINT}" >> "/var/log/syslog"
-#curl -sL "https://wasp.rmendiola.site/api/pptp/up?interface_name=ppp0&device_name=/dev/pts/0&device_speed=115200&local_ip=10.1.0.1&remote_ip=10.1.0.2&param=119.94.108.25"
 tail -f "/var/log/syslog"
 exec "$@"

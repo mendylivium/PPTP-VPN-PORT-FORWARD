@@ -2,17 +2,17 @@ FROM ubuntu:23.04
 MAINTAINER Rommel Mendiola <rommel.aquino.mendiola@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y ppp pptpd iptables redir curl
+RUN apt-get update && apt-get install -y ppp pptpd iptables redir curl lsof python3 python3-pip python3-venv 
 RUN rm -rf /var/lib/apt/lists/*
 
-# WORKDIR /app
+WORKDIR /app
 
-# RUN python3 -m venv venv
-# ENV PATH="/app/venv/bin:$PATH"
+RUN python3 -m venv venv
+ENV PATH="/app/venv/bin:$PATH"
 
-# RUN pip install shell2http
+RUN pip install shell2http
 
-# WORKDIR /
+WORKDIR /
 
 COPY ./dockerfiles/etc/ppp/pptpd-options /etc/ppp/pptpd-options
 COPY ./dockerfiles/etc/pptpd.conf /etc/pptpd.conf
