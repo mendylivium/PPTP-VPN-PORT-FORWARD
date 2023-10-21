@@ -46,6 +46,8 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 echo "export WASP_ENDPOINT=${WASP_ENDPOINT}" >> "/opt/envs.sh"
 echo "export OCT_2=${OCT_2}" >> "/opt/envs.sh"
+#shell2http --port 8085 -form /init-redir 'curl -sL "$WASP_ENDPOINT/api/pptp/redir?real=$v_realm" | bash' &
+#shell2http --port 8086 -form /make-redir 'redir -s ":$v_src_ip" $v_dest_ip:$v_dest_port' &
 
 pptpd
 echo "Start: API = ${WASP_ENDPOINT}" >> "/var/log/syslog"

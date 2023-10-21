@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pptp-server
-    hostname: pptp-server
+    container_name: pptp-server-port-control
+    hostname: pptp-server-port-control
     volumes:
       - ./dockerfiles/chap-secrets:/etc/ppp/chap-secrets
     environment:
